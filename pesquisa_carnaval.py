@@ -59,38 +59,46 @@ def listar_colunas(banco, tabela):
     exec.close()
     conexao.close()
     return colunas
-    
+
+#INSERT
 def insert(banco):
     conexao = banco.conectar()
     exec = conexao.cursor()
 
-    print('''/n Você gosta do carnaval?
+    print('''Você gosta do carnaval?
           [ 0 ] Sim      
           [ 1 ] Não''')
     carnaval_var = int(input('Digite aqui: '))
-    print('''/n Você gosta de açaí?
+    print('''Você gosta de açaí?
           [ 0 ] Sim      
           [ 1 ] Não''')
     acai_var = int(input('Digite aqui: '))
-    print('''/n Você consome álcool?
+    
+    print('''Você consome álcool?
           [ 0 ] Sim      
           [ 1 ] Não''')
     alcool_var = int(input('Digite aqui: '))
 
-    listar_sql = select_estilos(banco, colunas)
+    exec.execute("SELECT id, nome FROM estilos_musicais")
+    myresult = exec.fetchall()
 
-    idestilo_var = int(input('Digite aqui: '))
-    print('''/n Por favor deixe uma sugestão para nós, agradeceriamos muito''')
+    for x in myresult:
+        print(x)
+
+    idestilo_var = int(input('Qual seu estilo musical favorito? (Digite o número associado): '))
+
+    print('''Por favor deixe uma sugestão para nós, agradeceriamos muito''')
     sugestao_var = input('Digite aqui: ')
+
     sql = ('INSERT INTO perguntas (carnaval, acai,alcool,id_estilo,sugestao) VALUES (%s, %s, %s,%s,%s)')
     val = [carnaval_var, acai_var, alcool_var,idestilo_var,sugestao_var]
-    exec.execute(sql,val,listar_sql)
+    exec.execute(sql,val)
     conexao.commit()
     exec.close()
     conexao.close()
     print('\n    \033[32mDados adicionados com Sucesso!!\033[m')
 
-
+#SELECT
 def select(banco, tabela, colunas):
     print('\n', '==' * 60)
     conexao = banco.conectar()
@@ -110,68 +118,7 @@ def select(banco, tabela, colunas):
                 print(f'{dados[linha][dado]:^16}', end='')
     print('\n', '==' * 60)
 
-def select_estilos(banco, colunas):
-    print('\n', '==' * 60)
-    conexao = banco.conectar()
-    exec = conexao.cursor()
-    exec.execute('SELECT id, nome FROM estilos_musicais')
-    dados = exec.fetchall()
-
-    for coluna in colunas:
-        print(f'{coluna[0]:^16}', end='')
-    print('')
-
-    for linha in range(len(dados)):
-        for dado in range(len(colunas)):
-            if dado == 0:
-                print(f'\n{dados[linha][dado]:^16}', end='')
-            else:
-                print(f'{dados[linha][dado]:^16}', end='')
-    print('\n', '==' * 60)
-
-def where(banco, tabela, colunas):
-    conexao = banco.conectar()
-    exec = conexao.cursor()
-    filtrar = f'SELECT * FROM {tabela} WHERE '
-    contador = 1
-
-    print('\n   \033[36mQual o tipo de dado que você gostaria de filtrar?\033[m')
-    for coluna in colunas:
-        print(f'[ {contador} ]  -- {coluna[0]}')
-        contador += 1
-    escolha = int(input('\n    \033[33mSua respostas : \033[m'))
-
-    filtrar += f'{colunas[escolha-1][0]}=%s'
-    while True:
-        try:
-            if colunas[escolha-1][1] == 'int':
-                filtro = int(input(f'Digite o(a) {colunas[escolha-1][0]} de quem(o que) deseja encontrar [em números por favor] : '))
-            elif 'char' in colunas[escolha-1][1]:
-                filtro = input(f'Digite o(a) {colunas[escolha-1][0]}) de quem(o que) deseja encontrar : ').capitalize().strip()
-            elif colunas[escolha-1][1] == 'float':
-                filtro = float(input(f'Digite o(a) {colunas[escolha-1][0]}) de quem(o que) deseja encontrar [em números por favor] : '))
-        except:
-            print('\n       Dados Preenchidos incorretamente!!\n')
-        else:
-            print('\n   Coletando dados . . .')
-            break
-    valores = [filtro]
-    exec.execute(filtrar, valores)
-    dados = exec.fetchall()
-
-    print('\n', '==' * 60)
-    for coluna in colunas:
-        print(f'{coluna[0]:^16}', end='')
-    print('')
-
-    for linha in range(len(dados)):
-        for dado in range(len(colunas)):
-            if dado == 0:
-                print(f'\n{dados[linha][dado]:^16}', end='')
-            else:
-                print(f'{dados[linha][dado]:^16}', end='')
-    print('\n', '==' * 60)
-
+#UPDATE
 def update(banco, tabela, colunas):
     alterar = f'UPDATE {tabela} SET '
     valores = []
@@ -207,6 +154,7 @@ def update(banco, tabela, colunas):
     conexao.close()
     print('\n    \033[32mDados alterados com Sucesso!!\033[m')
 
+#DELETE
 def delete(banco, tabela):
     conexao = banco.conectar()
     exec = conexao.cursor()
@@ -220,6 +168,7 @@ def delete(banco, tabela):
     conexao.close()
     print('\n   \033[33mDados deletado com Sucesso!!\033[m')
 
+# JOIN
 def comando_join(banco, tabela, tabelas, colunas):    
     conexao = banco.conectar()
     exec = conexao.cursor()
@@ -324,9 +273,6 @@ def comando_join(banco, tabela, tabelas, colunas):
                     print(f'{dados[linha][dado]:^20}', end='')
         print('\n','==' * 60)
     print(juntar)
-    
-def sair():
-    print('\n\033[34mTenha um bom dia!!\033[m\n')
 
 
 #           MENU DO USUÁRIO
@@ -343,10 +289,9 @@ def administrar():
         print('''\n   \033[35mO que deseja fazer com esta tabela?\033[m
     [ 1 ] Adicionar Dados
     [ 2 ] Listar os Dados
-    [ 3 ] Filtrar Dados
-    [ 4 ] Alterar Dados
-    [ 5 ] Apagar Dados
-    [ 8 ] Sair''')
+    [ 3 ] Alterar Dados
+    [ 4 ] Apagar Dados
+    [ 5 ] Sair''')
 
         try:
             escolha = int(input('\n \033[36mSua resposta\033[m : '))
@@ -359,21 +304,18 @@ def administrar():
                 insert(conexao, tabela, colunas)
 
             elif escolha == 2:
-                select(conexao, tabela, colunas)
+                select(conexao, tabela, colunas,)
+                comando_join(conexao, tabela, tabelas, colunas)
 
             elif escolha == 3:
-                where(conexao, tabela, colunas)
-
-            elif escolha == 4:
                 select(conexao, tabela, colunas)
                 update(conexao, tabela, colunas)
 
-            elif escolha == 5:
+            elif escolha == 4:
                 select(conexao, tabela, colunas)
                 delete(conexao, tabela)
             
-            elif escolha == 6:
-                sair()
+            elif escolha == 5:
                 break
 
             else:
