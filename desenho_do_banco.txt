@@ -1,0 +1,13 @@
+Pesquisa:
+
+perguntas
+	id INT PRIMARY KEY NOT NULL AUTO_INCREMENT,
+	carnaval BOOLEAN,
+	acai BOOLEAN,
+	CONSTRAINT id_musical FOREIGN KEY (nome) reference estilo (id_nome),
+	sugestao TEXT
+	
+estilos_musicais
+	id INT PRIMARY KEY NOT NULL AUTO_INCREMENT,
+	nome VARCHAR(45) NOT NULL,
+	descricao TEXT
